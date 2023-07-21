@@ -1,8 +1,10 @@
 // REFERENCE https://youtu.be/CdPYlj5uZeI or https://www.youtube.com/watch?v=CdPYlj5uZeI&t=13s&ab_channel=ToyfulGames
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations;
 
 public class CarController : MonoBehaviour {
 
@@ -14,15 +16,15 @@ public class CarController : MonoBehaviour {
 
     [SerializeField] private List<Transform> tireTransformVisualList;
 
-    private float springStrength = 140f;
-    private float springDamper = 4f;
-    private float springDistance = 0.5f;
-    private float suspentionRestDistance = 0.49f;
+    private float springStrength = 300f;
+    private float springDamper = 5f;
+    private float springDistance = 0.4f;
+    private float suspentionRestDistance = 0.25f;
 
     [SerializeField] private AnimationCurve gripCurve;
-    private float tireGripFactor = 0.8f;
+    private float tireGripFactor = 0.7f;
 
-    private float acceleration = 5f;
+    private float acceleration = 10f;
     private float carTopSpeed = 20f;
     [SerializeField] private AnimationCurve powerCurve;
     private float autoDecelerationForce = 0.03f;
@@ -32,6 +34,10 @@ public class CarController : MonoBehaviour {
 
     [SerializeField] private AnimationCurve steerCurve;
 
+
+
+    private float steerInputNormalized = 0f;
+    private float throttleInputNormalized = 0f;
 
 
     private void Update() {
@@ -54,41 +60,52 @@ public class CarController : MonoBehaviour {
     }
 
     private void HandleSteering() {
-        float steerInput = 0f;
+        float maxSteeringAngle = 45f;
+        float steerSpeed = 20f * Time.deltaTime;
+
         if(Input.GetKey(KeyCode.A)) {
-            steerInput -= 45;
+            steerInputNormalized = Mathf.Lerp(steerInputNormalized, -1, steerSpeed);
         }
         if(Input.GetKey(KeyCode.D)) {
-            steerInput += 45;
+            steerInputNormalized = Mathf.Lerp(steerInputNormalized, 1, steerSpeed);
         }
+        if(!Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.D)) {
+            steerInputNormalized = Mathf.Lerp(steerInputNormalized, 0, steerSpeed / 2);
+        }
+
+
 
         float carSpeed = Vector3.Dot(transform.forward, carRigidBody.velocity);
         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
-        float outputSteering = steerCurve.Evaluate(normalizedSpeed) * steerInput;
+        float steeringAfterSpeedCorrection = steerCurve.Evaluate(normalizedSpeed) * steerInputNormalized * maxSteeringAngle;
 
         Vector3 slideDirection = gameObject.transform.right;
         Vector3 carWorldVelocity = carRigidBody.velocity;
         float sideVelocity = Vector3.Dot(slideDirection, carWorldVelocity);
 
-        float steeringCorrection = 1.2f;
-        outputSteering += sideVelocity * steeringCorrection;
+        float steeringCorrection = 1.25f;
+        steeringAfterSpeedCorrection += sideVelocity * steeringCorrection;
 
         foreach(Transform tireTransform in tireToSteerTransformList) {
-            tireTransform.localEulerAngles = new Vector3(0, outputSteering, 0);
+            tireTransform.localEulerAngles = new Vector3(0, steeringAfterSpeedCorrection, 0);
         }
     }
 
     private void HandleAccelerationAndDeceleration() {
-        float directionInput = 0;
+        float throttleChangeSpeed = 10f;
+
         if(Input.GetKey(KeyCode.W)) {
-            directionInput += 1;
+            throttleInputNormalized = Mathf.Lerp(throttleInputNormalized, 1, throttleChangeSpeed);
         }
         if(Input.GetKey(KeyCode.S)) {
-            directionInput += -1;
+            throttleInputNormalized = Mathf.Lerp(throttleInputNormalized, -1, throttleChangeSpeed);
+        }
+        if(!Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.S)) {
+            throttleInputNormalized = Mathf.Lerp(throttleInputNormalized, 0, throttleChangeSpeed);
         }
 
         if(Input.GetKey(KeyCode.LeftShift)) {
-            directionInput *= 1.5f;
+            throttleInputNormalized *= 1.5f;
         }
 
         foreach(Transform tireTransform in tireToApplyAccelerationForceTransformList) {
@@ -101,7 +118,7 @@ public class CarController : MonoBehaviour {
 
                 float tireForwardVelocity = Vector3.Dot(tireDirection, tireWorldVelocity);
                 // Auto deceleration
-                if(directionInput == 0) {
+                if(throttleInputNormalized == 0) {
                     float desiredVelocityChange = -Mathf.Clamp(tireForwardVelocity * 1000, -1, 1) * autoDecelerationForce;
 
                     float desiredDeceleration = desiredVelocityChange / Time.fixedDeltaTime;
@@ -111,7 +128,7 @@ public class CarController : MonoBehaviour {
                     float changeDirectionMargin = -1f;
 
                     // Stopping
-                    if(directionInput * tireForwardVelocity < changeDirectionMargin) {
+                    if(throttleInputNormalized * tireForwardVelocity < changeDirectionMargin) {
                         float desiredVelocityChange = -Mathf.Clamp(tireForwardVelocity * 1000, -1, 1) * stoppingForce;
 
                         float desiredDeceleration = desiredVelocityChange / Time.fixedDeltaTime;
@@ -120,12 +137,12 @@ public class CarController : MonoBehaviour {
                     }
 
                     // Accelirating
-                    if(directionInput * tireForwardVelocity > changeDirectionMargin) {
+                    if(throttleInputNormalized * tireForwardVelocity > changeDirectionMargin) {
                         float carSpeed = Vector3.Dot(transform.forward, carRigidBody.velocity);
 
                         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
 
-                        float availableTorque = powerCurve.Evaluate(normalizedSpeed) * acceleration * directionInput;
+                        float availableTorque = powerCurve.Evaluate(normalizedSpeed) * acceleration * throttleInputNormalized;
 
                         carRigidBody.AddForceAtPosition(accelerationDirection * availableTorque, tireRay.point);
                     }
@@ -141,18 +158,26 @@ public class CarController : MonoBehaviour {
                 Vector3 slideDirection = tireTransform.right;
                 // World velocity of a tire - diection
                 Vector3 tireWorldVelocity = carRigidBody.GetPointVelocity(tireTransform.position);
+
                 // Getting velocity of "Direction to reduce sliding in"
                 float tireSlidingVelocity = Vector3.Dot(slideDirection, tireWorldVelocity);
 
+                float maxSlidingEffectingSpeed = 10f;
+
                 // Modifying side grip based of sliding speed
-                float tireSlidingVelocityNormalized = Mathf.Clamp01(Mathf.Abs(tireSlidingVelocity) / 2);
+                float tireSlidingGripNormalized = Mathf.Clamp01(Mathf.Abs(tireSlidingVelocity / maxSlidingEffectingSpeed));
 
-                Debug.Log(tireSlidingVelocityNormalized);
 
-                float dinamicGrip = gripCurve.Evaluate(tireSlidingVelocityNormalized) * tireGripFactor;
+                float dinamicGrip = gripCurve.Evaluate(tireSlidingGripNormalized) * tireGripFactor;
+
+
+
 
                 // Counter velocity based om dinamic grip
+                float maxCounterSlidingVelocity = 1f;
                 float desiredVelocityChange = -tireSlidingVelocity * dinamicGrip;
+                desiredVelocityChange = Mathf.Clamp(desiredVelocityChange, -maxCounterSlidingVelocity, maxCounterSlidingVelocity);
+
                 // Acceliration = velocity / time
                 float counterForce = desiredVelocityChange / Time.fixedDeltaTime;
 
@@ -162,13 +187,16 @@ public class CarController : MonoBehaviour {
                 // Add counter force. Force = mass * acceliration
                 if(Input.GetKey(KeyCode.Space) && tireToApplyAccelerationForceTransformList.Contains(tireTransform)) {
                     // Power tire slipping
-                    carRigidBody.AddForceAtPosition(slideDirection * tireMass * counterForce * 0.5f, tireRay.point);
+                    carRigidBody.AddForceAtPosition(slideDirection * tireMass * counterForce * 0.4f, tireRay.point);
                 } else {
                     carRigidBody.AddForceAtPosition(slideDirection * tireMass * counterForce, tireRay.point);
                 }
+
+
+                Debug.DrawRay(tireTransform.position, tireWorldVelocity, Color.yellow);
+                Debug.DrawRay(tireTransform.position, tireTransform.right * desiredVelocityChange, Color.blue);
             }
         }
-        Debug.Log("point on dinamic grip");
     }
 
     private void HandleSuspention() {
