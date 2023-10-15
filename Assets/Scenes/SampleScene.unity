@@ -757,8 +757,8 @@ Transform:
   m_GameObject: {fileID: 797276280}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.1, z: 0.5}
+  m_LocalPosition: {x: 0, y: -0.235, z: 0.00000017881393}
+  m_LocalScale: {x: 0.33, y: 0.1, z: 0.33}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 811767216}
@@ -1033,7 +1033,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.114756346, y: 0.114756346, z: 0.20876834}
+  m_LocalScale: {x: 0.114756346, y: 0.114756346, z: 0.1797224}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1187521839}
@@ -1149,8 +1149,8 @@ Transform:
   m_GameObject: {fileID: 1590883233}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.10000001, z: 0.5}
+  m_LocalPosition: {x: 0, y: -0.235, z: -0.00000017881393}
+  m_LocalScale: {x: 0.33, y: 0.1, z: 0.33}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2076569714}
@@ -1264,8 +1264,8 @@ Transform:
   m_GameObject: {fileID: 1719223137}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.10000001, z: 0.5}
+  m_LocalPosition: {x: 0, y: -0.235, z: -0.00000017881393}
+  m_LocalScale: {x: 0.33, y: 0.1, z: 0.33}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1598772652}
@@ -1708,8 +1708,8 @@ Transform:
   m_GameObject: {fileID: 1999461560}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.10000001, z: 0.5}
+  m_LocalPosition: {x: 0, y: -0.235, z: 0.00000017881393}
+  m_LocalScale: {x: 0.33, y: 0.1, z: 0.33}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 923019061}
@@ -1843,17 +1843,20 @@ MonoBehaviour:
   - {fileID: 1999461561}
   - {fileID: 1590883234}
   - {fileID: 1719223138}
-  springStrength: 70
-  springDamper: 1
-  springDistance: 0.5
-  tireStaticFriction: 1000
-  tireKinematicFriction: 400
+  springStrength: 200
+  springDamper: 3
+  springDistance: 0.4
+  applyKinematicAfterVelocity: 0.2
+  tireStaticFriction: 3000
+  tireKinematicFriction: 150
+  tireRadiusVisual: 0.33
+  tireWidth: 0.1
   powerCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.008937836
-      value: 0.7377225
+      time: 0
+      value: 0.4998651
       inSlope: -0.019778114
       outSlope: -0.019778114
       tangentMode: 0
@@ -1861,8 +1864,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.29345092
     - serializedVersion: 3
-      time: 0.29159895
-      value: 0.9985833
+      time: 0.24
+      value: 0.99999857
       inSlope: 0.03093701
       outSlope: 0.03093701
       tangentMode: 0
@@ -1879,8 +1882,8 @@ MonoBehaviour:
       inWeight: 1
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.98838145
-      value: 0.5071802
+      time: 1
+      value: -0.0002280497
       inSlope: -1.5989898
       outSlope: -1.5989898
       tangentMode: 0
@@ -1907,17 +1910,28 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.9250498
     - serializedVersion: 3
-      time: 0.97508687
-      value: 0.5605421
-      inSlope: -0.8487475
-      outSlope: -0.8487475
+      time: 0.22750741
+      value: 0.8241251
+      inSlope: -2.3758929
+      outSlope: -2.3758929
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.17653935
+      inWeight: 0.26486912
+      outWeight: 0.078012794
+    - serializedVersion: 3
+      time: 0.9898797
+      value: 0.24996859
+      inSlope: -0.041883357
+      outSlope: -0.041883357
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.20955485
       outWeight: 0.073037915
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  maxSteeringAngle: 45
+  steerSpeed: 10
 --- !u!54 &2082870634
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1975,7 +1989,7 @@ Transform:
   m_GameObject: {fileID: 2082870632}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.54, y: 0.81, z: -5.44}
+  m_LocalPosition: {x: 3.986, y: 0.993, z: -6.146}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
