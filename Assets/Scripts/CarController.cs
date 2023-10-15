@@ -14,9 +14,9 @@ public class CarController : MonoBehaviour {
     [SerializeField] private List<Transform> tireTransformVisualList;
 
     [Header("Suspention")]
-    [SerializeField, Min(0)] private float springStrength = 300f;
+    [SerializeField, Min(0)] private float springStrength = 400f;
     [SerializeField, Min(0)] private float springDamper = 5f;
-    [SerializeField, Min(0)] private float springDistance = 0.4f;
+    [SerializeField, Min(0)] private float springDistance = 0.12f;
 
     [Header("Wheels")]
     [SerializeField, Min(0)] private float applyKinematicAfterVelocity = 0.3f;
@@ -157,9 +157,8 @@ public class CarController : MonoBehaviour {
 
                 Vector3 sideVelocity = velocityRightComponent * body.mass / tireTransformList.Count * (springDistance - tireRay.distance);
 
-                if (sideVelocity.magnitude < applyKinematicAfterVelocity) {
+                if (sideVelocity.magnitude < applyKinematicAfterVelocity)
                     body.AddForceAtPosition(-sideVelocity * tireStaticFriction * Time.fixedDeltaTime, tireRay.point);
-                }
                 else
                     body.AddForceAtPosition(-sideVelocity.normalized * tireKinematicFriction * Time.fixedDeltaTime, tireRay.point);
 
@@ -207,6 +206,29 @@ public class CarController : MonoBehaviour {
                 Debug.DrawRay(parentTire.position, parentTire.up * (springDistance - tireRay.distance), Color.black);
         }
     }
+
+
+
+    public void Agent_Steer(float steeringAngle) {
+        steeringAngle = Mathf.Clamp(steeringAngle, -maxSteeringAngle, maxSteeringAngle);
+
+        float carSpeed = Vector3.Dot(transform.forward, body.velocity);
+        float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(carSpeed) / carTopSpeed);
+        float desiredWheelAngle = steerCurve.Evaluate(normalizedSpeed) * steeringAngle;
+
+
+        //// correction
+        //float steeringCorrection = 0.9f;
+        //float sideVelocity = Vector3.Dot(transform.right, body.velocity);
+        //wheelsAngle += sideVelocity * steeringCorrection;
+
+        foreach (Transform tireTransform in tireToSteerTransformList) {
+            currentWheelAngle = Mathf.Lerp(currentWheelAngle, desiredWheelAngle, steerSpeed * Time.deltaTime);
+            tireTransform.localEulerAngles = new Vector3(0, currentWheelAngle, 0);
+        }
+    }
+
+
 
 
 
